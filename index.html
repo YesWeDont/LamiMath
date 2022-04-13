@@ -1,12 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
 <body>
+    <div class="equation-input">
+        y=<input type="number" name="x2v" class="x2v" value=1>x^2+<input type="number" name="xv" class="xv" value=0>x+<input type="number" class="cv" name="cv" value=-1>
+    </div>
+    <div class="zoom">
+        x range from <input type="number" name="xmin" class="xmin" value=0> to <input type="number" name="xmax" value=10 class="xmax">
+    </div>
+    <div class="roots">
+        
+    </div>
+    <div class="canvas-hold" style="position:relative; height:50vh;width:50vw"><canvas/></div>
+    <script src="./chart.js"></script>
     <script>
-        let iframe = document.createElement('iframe');
-        document.body.style.margin="0";
-        let box = document.body.getBoundingClientRect();
-        iframe.height = box.bottom - box.y;
-        iframe.width = box.right - box.x;
-        iframe.style.border = "none"
-        iframe.src = "https://www.geogebra.org/calculator";
-        document.body.appendChild(iframe);
+        function getRoot(a, b, c){
+            let discriminant = b ** 2 - 4 * a * c;
+            if(discriminant < -1){
+                document.querySelector('div.roots').innerHTML = "No root"
+            }
+            if(discriminant === 0){
+                document.querySelector('div.roots').innerHTML = `Overlapping root: ${-b/2/a}`
+            }
+            if(discriminant > 0){
+                let sqrDiscim = Math.sqrt(discriminant);
+                if(Number.isInteger(sqrDiscim)){
+                    document.querySelector('div.roots').innerHTML = `Roots: ${(-b-sqrDiscim)/2/a}, ${(-b+sqrDiscim)/2/a}`
+                }
+                else{
+                    document.querySelector('div.roots').innerHTML = `Roots: (${-b}+-sqrt(${discriminant}))/${2*a}; ${(-b-sqrDiscim)/2/a}, ${(-b+sqrDiscim)/2/a}`
+                }
+            }
+        }
+        let canvas = document.querySelector("canvas");
+        let chart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: [0,1,2,3,4,5,6,7,8,9,10],
+                datasets: [{
+                    label: 'Function',
+                    data: [0,0,0,0,0,0,0,0,0,0,0]
+                }]
+            },
+            options: {
+                transitions:false,
+                scales: {
+                    y: {
+                        beginAtZero: false
+                    }
+                }
+            }
+        });
+
+        function updateFn(){
+            let xmin = parseFloat(document.querySelector('input.xmin').value),
+            xmax = parseFloat(document.querySelector('input.xmax').value);
+            let a = parseFloat(document.querySelector('input.x2v').value),
+            b = parseFloat(document.querySelector('input.xv').value),
+            c = parseFloat(document.querySelector('input.cv').value);
+            if(!([xmin, xmax, a, b, c].some(Number.isNaN)) && (xmin < xmax)){
+                chart.options.scales.x.min = xmin || 0;
+                chart.options.scales.x.max = xmax || 10;
+                getRoot(a,b,c)
+                chart.data.labels = new Array(11).fill(null)
+                    .map((_,i)=>{
+                        return xmin+i*(xmax - xmin)/10
+                    });
+                chart.data.datasets[0].data = chart.data.labels.map((x)=>{
+                    return (a*x**2+b*x+c).toPrecision(3)
+                });
+                chart.options.scales.y.min = Math.min(...chart.data.datasets[0].data) || 0;
+                chart.options.scales.y.max = Math.max(...chart.data.datasets[0].data) || 10;
+                chart.data.datasets[0].label = `y=${a}x^2 + ${b}x + ${c}`
+                chart.resize()
+                chart.update()
+            }
+            requestAnimationFrame(updateFn)
+        }
+        updateFn();
     </script>
 </body>
+</html>
