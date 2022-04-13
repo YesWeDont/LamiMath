@@ -1,0 +1,12 @@
+<body>
+    <script>
+        let iframe = document.createElement('iframe');
+        document.body.style.margin="0";
+        let box = document.body.getBoundingClientRect();
+        iframe.height = box.bottom - box.y;
+        iframe.width = box.right - box.x;
+        iframe.style.border = "none"
+        iframe.src = "https://www.geogebra.org/calculator";
+        document.body.appendChild(iframe);
+    </script>
+</body>
